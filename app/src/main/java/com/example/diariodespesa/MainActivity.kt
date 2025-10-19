@@ -7,10 +7,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.room.Room
+import com.example.diariodespesa.data.ExpenseDatabase
+import com.example.diariodespesa.data.ExpensesRepository
 import com.example.diariodespesa.navigation.AppNav
+import com.example.diariodespesa.ui.screens.ExpensesViewModel
 import com.example.diariodespesa.ui.theme.DiarioDespesaTheme
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,7 +26,17 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNav()
+                    val database = remember {
+                        ExpenseDatabase.getDatabase(this@MainActivity)
+                    }
+                    val repository = remember {
+                        ExpensesRepository(database.expenseDao())
+                    }
+                    val viewModel = remember {
+                        ExpensesViewModel(repository)
+                    }
+
+                    AppNav(vm = viewModel)
                 }
             }
         }

@@ -7,21 +7,32 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.diariodespesa.data.Expense  // Import correto
 import com.example.diariodespesa.ui.components.DetailItem
+import com.example.diariodespesa.utils.formatCurrency
+import com.example.diariodespesa.utils.formatDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseDetailScreen(
-    // vm: ExpensesViewModel,
+    vm: ExpensesViewModel,
     id: Long,
     onBack: () -> Unit,
     onEdit: (Long) -> Unit,
     onDelete: () -> Unit
 ) {
-    // Exemplo de despesa, vem do ViewModel
-    val expense = Expense(id, "Gasolina", 150.0, "Transporte", System.currentTimeMillis())
+    val expenseState = remember { mutableStateOf<Expense?>(null) }
+
+
+    LaunchedEffect(id) {
+        val expense = vm.getExpenseById(id)
+        expenseState.value = expense
+    }
 
     Scaffold(
         topBar = {
@@ -47,10 +58,15 @@ fun ExpenseDetailScreen(
             modifier = Modifier.padding(padding).padding(16.dp).fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            DetailItem(label = "Descrição", value = expense.description)
-            DetailItem(label = "Valor", value = formatCurrency(expense.amount))
-            DetailItem(label = "Categoria", value = expense.category)
-            DetailItem(label = "Data", value = "18/10/2025") // TODO: Formatar o expense.date
+            expenseState.value?.let { expense ->
+                DetailItem(label = "Descrição", value = expense.description)
+                DetailItem(label = "Valor", value = formatCurrency(expense.amount))
+                DetailItem(label = "Categoria", value = expense.category)
+                DetailItem(label = "Data", value = formatDate(expense.date))
+            } ?: run {
+                // Mostrar loading ou mensagem se a despesa não for encontrada
+                Text("Carregando...")
+            }
         }
     }
 }

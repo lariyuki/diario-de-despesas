@@ -11,27 +11,25 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.diariodespesa.data.Expense
 import com.example.diariodespesa.ui.components.ExpenseItemCard
 import com.example.diariodespesa.ui.components.TotalExpensesCard
-
-// CLASSE E FUNÇÃO TEMPORÁRIAS
-data class Expense(val id: Long, val description: String, val amount: Double, val category: String, val date: Long)
-
-fun formatCurrency(value: Double): String {
-    return "R$ ${"%.2f".format(value).replace('.', ',')}"
-}
+import com.example.diariodespesa.utils.formatCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpensesListScreen(
-    // vm: ExpensesViewModel,
+    vm: ExpensesViewModel,
     onOpenDetails: (Long) -> Unit,
     onAddNewExpense: () -> Unit
 ) {
 
-    // 'null' significa que "Todos" estão selecionados.
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+
+    // Coletando os estados do ViewModel
+    val expenses by vm.expenses.collectAsState(initial = emptyList())
+    val totalExpenses by vm.totalExpenses.collectAsState(initial = null)
 
     Scaffold(
         topBar = {
@@ -51,7 +49,6 @@ fun ExpensesListScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
 
-
             val categories = listOf("Comida", "Transporte", "Lazer")
             Row(
                 modifier = Modifier
@@ -62,20 +59,20 @@ fun ExpensesListScreen(
                 // Botão para "Todos"
                 FilterChip(
                     selected = selectedCategory == null,
-                    onClick = { selectedCategory = null },
+                    onClick = { vm.setSelectedCategory(null) },
                     label = { Text("Todos") }
                 )
                 // Botões para cada categoria
                 categories.forEach { category ->
                     FilterChip(
                         selected = selectedCategory == category,
-                        onClick = { selectedCategory = category },
+                        onClick = { vm.setSelectedCategory(category) },
                         label = { Text(category) }
                     )
                 }
             }
 
-            TotalExpensesCard(total = 235.50) //valor fixo
+            TotalExpensesCard(total = totalExpenses ?: 0.0)
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -83,28 +80,12 @@ fun ExpensesListScreen(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val sampleExpenses = listOf(
-                    Expense(1, "Almoço", 25.50, "Comida", System.currentTimeMillis()),
-                    Expense(2, "Gasolina", 150.0, "Transporte", System.currentTimeMillis()),
-                    Expense(3, "Cinema", 45.25, "Lazer", System.currentTimeMillis()),
-                    Expense(4, "Café da tarde", 15.00, "Comida", System.currentTimeMillis())
-                )
-
-
-                val filteredExpenses = if (selectedCategory == null) {
-                    sampleExpenses // Se nenhuma categoria estiver selecionada, mostra tudo.
-                } else {
-                    sampleExpenses.filter {
-
-                        it.category == selectedCategory
-                    }
-                }
-
-                items(filteredExpenses, key = { it.id }) { expense ->
+                items(expenses, key = { it.id }) { expense ->
                     ExpenseItemCard(
                         expense = expense,
                         onClick = { onOpenDetails(expense.id) },
                         onDeleteClick = {
+                            vm.deleteExpenseById(expense.id)
                             Toast.makeText(context, "${expense.description} excluída!", Toast.LENGTH_SHORT).show()
                         }
                     )

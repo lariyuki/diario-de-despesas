@@ -11,9 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.diariodespesa.ui.screens.Expense
-import com.example.diariodespesa.ui.screens.formatCurrency
-
+import com.example.diariodespesa.data.Expense
+import com.example.diariodespesa.utils.formatCurrency
 
 @Composable
 fun TotalExpensesCard(total: Double) {
@@ -36,7 +35,6 @@ fun TotalExpensesCard(total: Double) {
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +61,6 @@ fun ExpenseItemCard(
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
 
-
             IconButton(onClick = onDeleteClick) {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -74,7 +71,6 @@ fun ExpenseItemCard(
         }
     }
 }
-
 
 @Composable
 fun DetailItem(label: String, value: String) {

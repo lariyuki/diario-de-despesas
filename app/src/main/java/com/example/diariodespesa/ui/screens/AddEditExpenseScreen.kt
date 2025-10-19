@@ -1,4 +1,5 @@
 package com.example.diariodespesa.ui.screens
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -8,11 +9,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.diariodespesa.utils.parseDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditExpenseScreen(
-    // vm: ExpensesViewModel,
+    vm: ExpensesViewModel,
     id: Long?,
     onCancel: () -> Unit,
     onSave: () -> Unit
@@ -22,8 +24,11 @@ fun AddEditExpenseScreen(
     var category by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
 
-    // Validação simples: verifica se a data tem pelo menos 8 caracteres (ex: DD/MM/YY)
-    val isFormValid = description.isNotBlank() && amount.isNotBlank() && category.isNotBlank() && date.length >= 8
+    val isFormValid = description.isNotBlank() &&
+            amount.isNotBlank() &&
+            category.isNotBlank() &&
+            date.length >= 8
+
     val topBarTitle = if (id == null) "Adicionar Despesa" else "Editar Despesa"
 
     Scaffold(
@@ -36,7 +41,17 @@ fun AddEditExpenseScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = onSave, enabled = isFormValid) {
+                    TextButton(
+                        onClick = {
+                            // Converter valores e salvar
+                            val amountValue = amount.toDoubleOrNull() ?: 0.0
+                            val dateTimestamp = parseDate(date)
+
+                            vm.addExpense(description, amountValue, category, dateTimestamp)
+                            onSave()
+                        },
+                        enabled = isFormValid
+                    ) {
                         Text("Salvar")
                     }
                 }
@@ -69,8 +84,6 @@ fun AddEditExpenseScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-
-
             OutlinedTextField(
                 value = date,
                 onValueChange = {
